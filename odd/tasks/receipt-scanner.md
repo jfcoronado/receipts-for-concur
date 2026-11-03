@@ -1,6 +1,6 @@
 # Receipt Scanner for Concur
 
-Status: in progress. Workflow: Organic Driven Development (ODD), classified large.
+Status: complete. Workflow: Organic Driven Development (ODD), classified large.
 Test runner: `node --test` (unit), Playwright (browser). TDD: observed RED, then GREEN, then REFACTOR.
 Engram mirror: not created, because Engram is not installed on this machine. This file is the only record.
 
@@ -37,7 +37,7 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
 - [x] T4 | S2, S3, S4, S5, S6 | UI and IndexedDB wiring | commit: 942838c
 - [x] T5 | S1, S4, S7 | Manifest, icons, service worker | commit: f0a6aa0
 - [x] T6 | S1 to S7 | Browser end-to-end test, in Chromium only | commit: 5589490
-- [ ] T7 | S1, S5 | Publish over HTTPS and prove on a real iPhone. Needs user approval and the user's phone | commit: -
+- [x] T7 | S1, S5 | Publish over HTTPS and prove on a real iPhone. Needs user approval and the user's phone | commit: bc45863, proof in L13, L17, L18
 - [x] T8 | S5b, S6 | OneDrive and Outlook route, with user-confirmed "Mark sent" (TDD) | commit: 94d0995
 - [x] T9 | S5c | Try opening the Outlook draft automatically after a finished share. Failed on iPhone, so removed | commit: 63acca6, removed in the next code commit
 
@@ -60,3 +60,4 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
 - **L15 (T9 proof):** valid RED: only the new test failed. GREEN in Chromium with the share and the Outlook link simulated. Not proved: whether Safari allows the jump once the share has finished.
 - **L16 (T9 result on iPhone, reported by user):** "Outlook didn't opened automatically". The automatic step was removed, as agreed beforehand. The Open Outlook button remains, and it does work from a tap (L13).
 - **L17 (iPhone test, reported by user):** photo orientation, dragging corners by finger, and a readable receipt in Available Receipts all work. T7 stays open only for opening and scanning offline on the iPhone.
+- **L18 (close, reported by user):** offline test on the iPhone: "It works". All tasks are checked. Close report: the verified flow is scan, Share to OneDrive, Open Outlook, attach from OneDrive, send, Mark sent. It's live at https://jfcoronado.github.io/receipts-for-concur/. Never run: automated tests on a Safari engine, as WebKit can't launch on the development machine; the iPhone checks cover this. Pending: nothing. Next step: none required.
