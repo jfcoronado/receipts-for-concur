@@ -39,7 +39,7 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
 - [x] T6 | S1 to S7 | Browser end-to-end test, in Chromium only | commit: 5589490
 - [ ] T7 | S1, S5 | Publish over HTTPS and prove on a real iPhone. Needs user approval and the user's phone | commit: -
 - [x] T8 | S5b, S6 | OneDrive and Outlook route, with user-confirmed "Mark sent" (TDD) | commit: 94d0995
-- [ ] T9 | S5c | Open the Outlook draft automatically after a finished share (TDD, needs iPhone proof) | commit: -
+- [ ] T9 | S5c | Open the Outlook draft automatically after a finished share (TDD, needs iPhone proof) | commit: 63acca6 (code; iPhone proof pending)
 
 ## Log
 
@@ -56,3 +56,5 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
 - **L11 (working route, reported by user):** "I had to save the image to onedrive and from OneDrive I could attach it to Outlook. I sent email to receipts@concur.com and it worked"
 - **L12 (T8 proof):** valid RED observed: 12 browser tests failed and the unit test file couldn't load the missing export. GREEN: 37 unit and 22 browser tests pass in Chromium. The tests also caught a bug in the change, where the new Outlook link stopped the Download link from appearing. Not proved: whether `ms-outlook://compose` opens Outlook and fills in To on a real iPhone, since that link format comes from secondhand sources.
 - **L13 (iPhone test, reported by user):** "Outlook opens, it add the address. Phone camera open great." This proves Open Outlook and the To field, and that the camera opens. T7 stays open for: photo orientation, dragging corners by finger, opening offline, and a receipt sent through the updated app appearing readable in Available Receipts.
+- **L14 (OneDrive limits):** user can't get Microsoft Graph approved, and asked for an automatic save to OneDrive. No documented OneDrive link takes a file, so a web app can't do that. The user asked for the automatic Outlook step instead.
+- **L15 (T9 proof):** valid RED: only the new test failed. GREEN in Chromium with the share and the Outlook link simulated. Not proved: whether Safari allows the jump once the share has finished.
