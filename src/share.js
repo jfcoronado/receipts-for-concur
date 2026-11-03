@@ -12,8 +12,14 @@ export function canShareFiles(nav, file) {
   }
 }
 
+/** Builds a link that opens an Outlook draft. It can't attach files. */
+export function outlookComposeUrl(address) {
+  const to = encodeURIComponent(address).replace(/%40/g, '@');
+  return `ms-outlook://compose?to=${to}&subject=Receipt`;
+}
+
 /** Starts the copy immediately and resolves to whether it worked. Never rejects. */
-function copyText(nav, text) {
+export function copyText(nav, text) {
   try {
     return nav.clipboard.writeText(text).then(
       () => true,

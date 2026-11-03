@@ -2,7 +2,13 @@
 
 import { createEditor } from './editor.js';
 import { createQueue } from './queue.js';
-import { DEFAULT_ADDRESS, isValidEmail, shareReceipt } from './share.js';
+import {
+  copyText,
+  DEFAULT_ADDRESS,
+  isValidEmail,
+  outlookComposeUrl,
+  shareReceipt,
+} from './share.js';
 import { openStore } from './store.js';
 
 const ADDRESS_KEY = 'receipts.address';
@@ -61,7 +67,7 @@ function button(label, className, onClick) {
 }
 
 function offerDownload(row, item, url) {
-  if (row.querySelector('a')) return;
+  if (row.querySelector('a[download]')) return;
   const link = document.createElement('a');
   link.className = 'button';
   link.textContent = 'Download';
@@ -71,26 +77,43 @@ function offerDownload(row, item, url) {
 }
 
 /**
- * Handles the Send tap. Nothing may be awaited before shareReceipt, because Safari
+ * Handles the Share tap. Nothing may be awaited before shareReceipt, because Safari
  * only allows sharing during the tap. That is why receipts stay loaded in `items`
  * rather than being fetched from storage here.
+ *
+ * A finished share doesn't change the status: it may only have saved the file, so
+ * nothing has been emailed yet. Only the user can say it was sent.
  */
-async function send(item, row, url) {
+async function share(item, row, url) {
   const file = new File([item.blob], item.name, { type: 'image/jpeg' });
   const result = await shareReceipt({ file, address: loadAddress() });
 
   if (result.outcome === 'shared') {
-    await queue.markShared(item.id);
-    await render();
-    say('Shared. Check Available Receipts in Concur to confirm it arrived.');
+    say('Done. If you saved it to OneDrive, tap Open Outlook and attach it from there.');
   } else if (result.outcome === 'cancelled') {
-    say('Not sent. The receipt is still pending.');
+    say('Not shared. The receipt is still pending.');
   } else if (result.outcome === 'unsupported') {
     offerDownload(row, item, url);
     say('This browser can’t share files. Download the receipt and email it yourself.');
   } else {
     say(`Couldn’t open the share sheet. ${result.message}`);
   }
+}
+
+async function markSent(item) {
+  await queue.markShared(item.id);
+  await render();
+  say('Marked sent. Check Available Receipts in Concur to confirm it arrived.');
+}
+
+function outlookLink() {
+  const link = document.createElement('a');
+  link.className = 'button';
+  link.textContent = 'Open Outlook';
+  link.href = outlookComposeUrl(loadAddress());
+  // Copied as a backup, in case Outlook leaves the To field empty.
+  link.addEventListener('click', () => copyText(navigator, loadAddress()));
+  return link;
 }
 
 async function remove(item) {
@@ -127,14 +150,24 @@ function receiptRow(item) {
   const pending = item.status === 'pending';
   const state = document.createElement('div');
   state.className = pending ? 'state pending' : 'state';
-  state.textContent = pending ? 'Pending' : `Shared ${formatTime(item.sharedAt)}`;
+  state.textContent = pending ? 'Pending' : `Marked sent ${formatTime(item.sharedAt)}`;
 
   const actions = document.createElement('div');
   actions.className = 'actions';
   actions.append(
-    button(pending ? 'Send' : 'Send again', pending ? 'primary' : '', () =>
-      send(item, row, url).catch((error) => say(`Something went wrong. ${error.message}`)),
+    button(pending ? 'Share' : 'Share again', pending ? 'primary' : '', () =>
+      share(item, row, url).catch((error) => say(`Something went wrong. ${error.message}`)),
     ),
+    outlookLink(),
+  );
+  if (pending) {
+    actions.append(
+      button('Mark sent', '', () =>
+        markSent(item).catch((error) => say(`Couldn’t update it. ${error.message}`)),
+      ),
+    );
+  }
+  actions.append(
     button('Delete', 'danger', () =>
       remove(item).catch((error) => say(`Couldn’t delete it. ${error.message}`)),
     ),
@@ -215,6 +248,8 @@ function setUpSettings() {
     say(saveAddress(address) ? 'Address saved.' : 'Couldn’t save the address on this device.');
     showAddress(address);
     $('settings').hidden = true;
+    // Rebuilds the Open Outlook links with the new address.
+    render().catch((error) => say(`Couldn’t refresh the list. ${error.message}`));
   });
 }
 

@@ -1,6 +1,34 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { canShareFiles, isValidEmail, shareReceipt } from '../../src/share.js';
+import {
+  canShareFiles,
+  copyText,
+  isValidEmail,
+  outlookComposeUrl,
+  shareReceipt,
+} from '../../src/share.js';
+
+test('outlookComposeUrl addresses a draft and keeps the @ readable', () => {
+  assert.equal(
+    outlookComposeUrl('receipts@concur.com'),
+    'ms-outlook://compose?to=receipts@concur.com&subject=Receipt',
+  );
+});
+
+test('outlookComposeUrl escapes characters that would break the link', () => {
+  assert.equal(
+    outlookComposeUrl('a&b@concur.com'),
+    'ms-outlook://compose?to=a%26b@concur.com&subject=Receipt',
+  );
+});
+
+test('copyText reports success and failure without rejecting', async () => {
+  const works = { clipboard: { writeText: async () => {} } };
+  const denied = { clipboard: { writeText: async () => { throw new Error('denied'); } } };
+  assert.equal(await copyText(works, 'x'), true);
+  assert.equal(await copyText(denied, 'x'), false);
+  assert.equal(await copyText({}, 'x'), false);
+});
 
 const file = { name: 'receipt.jpg' };
 const ADDRESS = 'receipts@concur.com';

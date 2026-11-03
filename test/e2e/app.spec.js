@@ -72,8 +72,8 @@ async function dragCorner(page, from, to, photoWidth = 600) {
 /** Saves and sends the open scan, then reports its size and sampled grey levels. */
 async function saveAndInspect(page) {
   await page.getByRole('button', { name: 'Save receipt' }).click();
-  await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.getByTestId('receipt').first()).toContainText('Shared');
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect(page.getByRole('status')).toContainText('Open Outlook');
   return page.evaluate(async () => {
     const bitmap = await createImageBitmap(window.__lastFile);
     const canvas = document.createElement('canvas');
@@ -150,8 +150,8 @@ test('the saved scan is a JPEG that fits the size limit', async ({ page }) => {
   await stubShare(page);
   await page.goto('/');
   await scan(page);
-  await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.getByTestId('receipt').first()).toContainText('Shared');
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect(page.getByRole('status')).toContainText('Open Outlook');
   const [[file]] = await page.evaluate(() => window.__shared);
   expect(file.type).toBe('image/jpeg');
   expect(file.name).toMatch(/^receipt-\d{8}-\d{6}\.jpg$/);
@@ -165,21 +165,61 @@ test('receipts survive a reload', async ({ page }) => {
   await expect(page.getByTestId('receipt')).toHaveCount(1);
 });
 
-test('send copies the Concur address and marks the receipt shared', async ({ page }) => {
+test('a completed share copies the address but leaves the receipt pending', async ({ page }) => {
   await stubShare(page);
   await page.goto('/');
   await scan(page);
-  await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.getByTestId('receipt').first()).toContainText('Shared');
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect(page.getByRole('status')).toContainText('Open Outlook');
   expect(await page.evaluate(() => window.__copied)).toEqual(['receipts@concur.com']);
+  await expect(page.getByTestId('receipt').first()).toContainText('Pending');
+});
+
+test('only Mark sent changes the status, and it survives a reload', async ({ page }) => {
+  await page.goto('/');
+  await scan(page);
+  await page.getByRole('button', { name: 'Mark sent' }).click();
+  const receipt = page.getByTestId('receipt').first();
+  await expect(receipt).toContainText('Marked sent');
+  await expect(receipt.getByRole('button', { name: 'Mark sent' })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId('receipt').first()).toContainText('Marked sent');
+});
+
+test('Open Outlook links to a draft for the saved address', async ({ page }) => {
+  await page.goto('/');
+  await scan(page);
+  await expect(page.getByRole('link', { name: 'Open Outlook' })).toHaveAttribute(
+    'href',
+    'ms-outlook://compose?to=receipts@concur.com&subject=Receipt',
+  );
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByLabel('Send receipts to').fill('receipts@expenseit.com');
+  await page.getByRole('button', { name: 'Save address' }).click();
+  await expect(page.getByRole('link', { name: 'Open Outlook' })).toHaveAttribute(
+    'href',
+    'ms-outlook://compose?to=receipts@expenseit.com&subject=Receipt',
+  );
+});
+
+test('Open Outlook also copies the address, in case To stays empty', async ({ page }) => {
+  await stubShare(page);
+  await page.goto('/');
+  await scan(page);
+  // Stop the navigation, since no browser here can open the Outlook app.
+  await page.evaluate(() =>
+    document.addEventListener('click', (event) => event.preventDefault()),
+  );
+  await page.getByRole('link', { name: 'Open Outlook' }).click();
+  await expect.poll(() => page.evaluate(() => window.__copied)).toEqual(['receipts@concur.com']);
 });
 
 test('cancelling the share sheet leaves the receipt pending', async ({ page }) => {
   await stubShare(page, 'cancel');
   await page.goto('/');
   await scan(page);
-  await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.getByRole('status')).toContainText('Not sent');
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect(page.getByRole('status')).toContainText('Not shared');
   await expect(page.getByTestId('receipt').first()).toContainText('Pending');
 });
 
@@ -187,7 +227,7 @@ test('without file sharing the app explains and offers a download', async ({ pag
   await stubShare(page, 'unsupported');
   await page.goto('/');
   await scan(page);
-  await page.getByRole('button', { name: 'Send' }).click();
+  await page.getByRole('button', { name: 'Share' }).click();
   await expect(page.getByRole('status')).toContainText('can’t share files');
   await expect(page.getByRole('link', { name: 'Download' })).toBeVisible();
   await expect(page.getByTestId('receipt').first()).toContainText('Pending');
@@ -201,8 +241,8 @@ test('the address can be changed and is remembered', async ({ page }) => {
   await page.getByRole('button', { name: 'Save address' }).click();
   await page.reload();
   await scan(page);
-  await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.getByTestId('receipt').first()).toContainText('Shared');
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect(page.getByRole('status')).toContainText('Open Outlook');
   expect(await page.evaluate(() => window.__copied)).toEqual(['receipts@expenseit.com']);
 });
 
@@ -240,8 +280,10 @@ test('no screen ever says the receipt reached Concur', async ({ page }) => {
   await stubShare(page);
   await page.goto('/');
   await scan(page);
-  await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.getByTestId('receipt').first()).toContainText('Shared');
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect(page.getByRole('status')).toContainText('Open Outlook');
+  await page.getByRole('button', { name: 'Mark sent' }).click();
+  await expect(page.getByTestId('receipt').first()).toContainText('Marked sent');
   const text = await page.locator('#list-view').innerText();
   expect(text).not.toMatch(/uploaded|received|delivered|in concur/i);
 });
