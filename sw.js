@@ -1,7 +1,7 @@
 // Stores the app's own files so it opens offline. Receipts live in IndexedDB, not here.
 // Change VERSION on every release, or installed phones keep the old files.
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = `receipts-${VERSION}`;
 const FILES = [
   './',

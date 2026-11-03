@@ -34,6 +34,18 @@ async function stubShare(page, behaviour = 'resolve') {
   await page.addInitScript((mode) => {
     window.__shared = [];
     window.__copied = [];
+    // Records Outlook links instead of following them, as no browser here has Outlook.
+    window.__opened = [];
+    document.addEventListener(
+      'click',
+      (event) => {
+        const link = event.target.closest?.('a[href^="ms-outlook:"]');
+        if (!link) return;
+        window.__opened.push(link.href);
+        event.preventDefault();
+      },
+      true,
+    );
     navigator.canShare = () => mode !== 'unsupported';
     navigator.share = async (data) => {
       window.__lastFile = data.files[0];
@@ -171,7 +183,19 @@ test('a completed share copies the address but leaves the receipt pending', asyn
   await scan(page);
   await page.getByRole('button', { name: 'Share' }).click();
   await expect(page.getByRole('status')).toContainText('Open Outlook');
-  expect(await page.evaluate(() => window.__copied)).toEqual(['receipts@concur.com']);
+  const copied = await page.evaluate(() => [...new Set(window.__copied)]);
+  expect(copied).toEqual(['receipts@concur.com']);
+  await expect(page.getByTestId('receipt').first()).toContainText('Pending');
+});
+
+test('a finished share opens the Outlook draft by itself', async ({ page }) => {
+  await stubShare(page);
+  await page.goto('/');
+  await scan(page);
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect
+    .poll(() => page.evaluate(() => window.__opened))
+    .toEqual(['ms-outlook://compose?to=receipts@concur.com&subject=Receipt']);
   await expect(page.getByTestId('receipt').first()).toContainText('Pending');
 });
 
@@ -221,6 +245,7 @@ test('cancelling the share sheet leaves the receipt pending', async ({ page }) =
   await page.getByRole('button', { name: 'Share' }).click();
   await expect(page.getByRole('status')).toContainText('Not shared');
   await expect(page.getByTestId('receipt').first()).toContainText('Pending');
+  expect(await page.evaluate(() => window.__opened)).toEqual([]);
 });
 
 test('without file sharing the app explains and offers a download', async ({ page }) => {
@@ -231,6 +256,7 @@ test('without file sharing the app explains and offers a download', async ({ pag
   await expect(page.getByRole('status')).toContainText('can’t share files');
   await expect(page.getByRole('link', { name: 'Download' })).toBeVisible();
   await expect(page.getByTestId('receipt').first()).toContainText('Pending');
+  expect(await page.evaluate(() => window.__opened)).toEqual([]);
 });
 
 test('the address can be changed and is remembered', async ({ page }) => {
@@ -243,7 +269,8 @@ test('the address can be changed and is remembered', async ({ page }) => {
   await scan(page);
   await page.getByRole('button', { name: 'Share' }).click();
   await expect(page.getByRole('status')).toContainText('Open Outlook');
-  expect(await page.evaluate(() => window.__copied)).toEqual(['receipts@expenseit.com']);
+  const copied = await page.evaluate(() => [...new Set(window.__copied)]);
+  expect(copied).toEqual(['receipts@expenseit.com']);
 });
 
 test('an invalid address is rejected', async ({ page }) => {
