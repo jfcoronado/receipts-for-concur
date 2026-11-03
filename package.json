@@ -1,0 +1,12 @@
+{
+  "name": "receipt-scanner",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Scan receipts on iPhone and email them to SAP Concur. Installs from Safari, no App Store.",
+  "scripts": {
+    "test": "node --test \"test/unit/*.test.js\"",
+    "test:e2e": "playwright test",
+    "serve": "node tools/serve.js"
+  }
+}
