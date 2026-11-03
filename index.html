@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob:; base-uri 'none'; form-action 'none'">
+  <title>Receipts</title>
+  <meta name="description" content="Scan receipts and email them to Concur.">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Receipts">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="src/app.js"></script>
+</head>
+<body>
+  <main id="list-view">
+    <header class="bar">
+      <h1>Receipts</h1>
+      <button type="button" id="open-settings" class="quiet">Settings</button>
+    </header>
+
+    <aside id="install-hint" class="card note" hidden>
+      <strong>Install this app first.</strong>
+      In Safari, tap Share, then “Add to Home Screen”, and open it from there.
+      Receipts saved in Safari don’t carry over to the installed app.
+    </aside>
+
+    <section id="settings" class="card" hidden>
+      <h2>Settings</h2>
+      <label for="address">Send receipts to</label>
+      <input id="address" type="email" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button type="button" id="save-address">Save address</button>
+      <h3>Before your first receipt</h3>
+      <ol>
+        <li>On the Concur website, open Profile Settings and verify the email address you’ll send from. Concur rejects other senders.</li>
+        <li>Send from that same account in Mail.</li>
+        <li>After sending, look for the receipt under Available Receipts in Concur.</li>
+      </ol>
+    </section>
+
+    <div id="capture" class="capture">
+      <label class="button primary">
+        Scan receipt
+        <input data-testid="camera-input" class="file-input" type="file" accept="image/*" capture="environment">
+      </label>
+      <label class="button">
+        Choose photo
+        <input class="file-input" type="file" accept="image/*">
+      </label>
+    </div>
+
+    <p class="hint">Send copies <strong id="address-hint"></strong>. Paste it into the To field in Mail.</p>
+
+    <p id="empty" class="empty" hidden>No receipts yet</p>
+    <ul id="receipts" class="receipts"></ul>
+  </main>
+
+  <main id="editor-view" hidden>
+    <header class="bar">
+      <h1>Adjust corners</h1>
+    </header>
+    <p class="hint">Drag each corner onto the edge of the receipt.</p>
+    <div class="stage"><canvas id="stage"></canvas></div>
+    <div class="row">
+      <button type="button" id="rotate">Rotate</button>
+      <label class="check"><input id="enhance" type="checkbox" checked> Enhance</label>
+    </div>
+    <div class="row">
+      <button type="button" id="cancel-edit">Cancel</button>
+      <button type="button" id="save-edit" class="primary">Save receipt</button>
+    </div>
+  </main>
+
+  <dialog id="preview" aria-label="Receipt preview">
+    <form method="dialog"><button class="quiet">Close</button></form>
+    <img id="preview-image" alt="Scanned receipt">
+  </dialog>
+
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+</body>
+</html>
