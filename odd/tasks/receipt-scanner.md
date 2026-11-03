@@ -16,7 +16,9 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
 - **S5 Reaches Concur by email.** "Send" opens the iPhone share sheet with the JPEG attached, and the destination address is copied to the clipboard in the same tap.
   - Default address: `receipts@concur.com`, editable in settings (for example `receipts@expenseit.com`).
   - Accept: a completed share marks the item `shared`; cancelling leaves it `pending`; where file sharing is unsupported, the app says so and offers a download.
-- **S6 Honest status.** The app never claims a receipt reached Concur, because it cannot know. The label is "Shared".
+- **S5b OneDrive and Outlook route (added after L11, replaces "a completed share marks the item shared").** "Share" opens the share sheet so the user can save to OneDrive. "Open Outlook" copies the address and opens an Outlook draft through `ms-outlook://compose`. The user attaches the file from OneDrive.
+  - Accept: a completed share leaves the item `pending`; "Mark sent" is the only thing that changes it.
+- **S6 Honest status.** The app never claims a receipt reached Concur, because it cannot know. The label is "Marked sent", and only the user sets it.
 - **S7 Stays private.** Receipt images leave the phone only when the user shares them. No analytics and no third-party requests.
 
 ### Known constraints
@@ -34,6 +36,7 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
 - [x] T5 | S1, S4, S7 | Manifest, icons, service worker | commit: f0a6aa0
 - [x] T6 | S1 to S7 | Browser end-to-end test, in Chromium only | commit: 5589490
 - [ ] T7 | S1, S5 | Publish over HTTPS and prove on a real iPhone. Needs user approval and the user's phone | commit: -
+- [x] T8 | S5b, S6 | OneDrive and Outlook route, with user-confirmed "Mark sent" (TDD) | commit: 94d0995
 
 ## Log
 
@@ -47,3 +50,5 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
 - **L8 (visual review):** screens and a sample scan checked at phone size. When the corners are left wide of the receipt, Enhance turns the table black and lifts the paper to white, but text stays mid-grey. It's still readable, and cropping properly avoids it.
 - **L9 (published, T7 part 1):** user approved a public repo and GitHub Pages. Live at https://jfcoronado.github.io/receipts-for-concur/ from `main`. Checked on the live site in Chromium: all 15 app files return 200, the service worker takes control, the app opens offline, an offline scan and simulated send work, and there are no third-party requests or page errors. T7 stays open until the real iPhone checks in L7 are done.
 - **L10 (iPhone test):** user reports that sharing to corporate Outlook opens it and it closes straight away. The same happens when sharing a photo from the Photos app, so the receipt app isn't the cause. Company policy on Outlook is suspected but unconfirmed. Still open: what the user sees with the To address. The app also labels a receipt "Shared" for any completed share, such as Save Image, so the label can be wrong.
+- **L11 (working route, reported by user):** "I had to save the image to onedrive and from OneDrive I could attach it to Outlook. I sent email to receipts@concur.com and it worked"
+- **L12 (T8 proof):** valid RED observed: 12 browser tests failed and the unit test file couldn't load the missing export. GREEN: 37 unit and 22 browser tests pass in Chromium. The tests also caught a bug in the change, where the new Outlook link stopped the Download link from appearing. Not proved: whether `ms-outlook://compose` opens Outlook and fills in To on a real iPhone, since that link format comes from secondhand sources.
