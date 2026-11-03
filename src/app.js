@@ -89,9 +89,9 @@ async function share(item, row, url) {
   const result = await shareReceipt({ file, address: loadAddress() });
 
   if (result.outcome === 'shared') {
-    say('Saved. Opening Outlook. If it doesn’t open, tap Open Outlook.');
-    // Safari may block this, as it's no longer directly from a tap. The button remains.
-    row.querySelector('.outlook-link').click();
+    // Don't open Outlook from here: on a real iPhone, Safari doesn't follow the link
+    // once the share has finished. It has to come directly from a tap on the button.
+    say('Saved. Now tap Open Outlook and attach the file from OneDrive.');
   } else if (result.outcome === 'cancelled') {
     say('Not shared. The receipt is still pending.');
   } else if (result.outcome === 'unsupported') {
@@ -110,7 +110,7 @@ async function markSent(item) {
 
 function outlookLink() {
   const link = document.createElement('a');
-  link.className = 'button outlook-link';
+  link.className = 'button';
   link.textContent = 'Open Outlook';
   link.href = outlookComposeUrl(loadAddress());
   // Copied as a backup, in case Outlook leaves the To field empty.

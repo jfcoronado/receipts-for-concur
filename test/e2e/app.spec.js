@@ -188,15 +188,17 @@ test('a completed share copies the address but leaves the receipt pending', asyn
   await expect(page.getByTestId('receipt').first()).toContainText('Pending');
 });
 
-test('a finished share opens the Outlook draft by itself', async ({ page }) => {
+test('a finished share leaves opening Outlook to the user', async ({ page }) => {
   await stubShare(page);
   await page.goto('/');
   await scan(page);
   await page.getByRole('button', { name: 'Share' }).click();
-  await expect
-    .poll(() => page.evaluate(() => window.__opened))
-    .toEqual(['ms-outlook://compose?to=receipts@concur.com&subject=Receipt']);
-  await expect(page.getByTestId('receipt').first()).toContainText('Pending');
+  await expect(page.getByRole('status')).toContainText('tap Open Outlook');
+  expect(await page.evaluate(() => window.__opened)).toEqual([]);
+  await page.getByRole('link', { name: 'Open Outlook' }).click();
+  expect(await page.evaluate(() => window.__opened)).toEqual([
+    'ms-outlook://compose?to=receipts@concur.com&subject=Receipt',
+  ]);
 });
 
 test('only Mark sent changes the status, and it survives a reload', async ({ page }) => {

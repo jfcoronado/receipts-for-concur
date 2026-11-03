@@ -18,8 +18,8 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
   - Accept: a completed share marks the item `shared`; cancelling leaves it `pending`; where file sharing is unsupported, the app says so and offers a download.
 - **S5b OneDrive and Outlook route (added after L11, replaces "a completed share marks the item shared").** "Share" opens the share sheet so the user can save to OneDrive. "Open Outlook" copies the address and opens an Outlook draft through `ms-outlook://compose`. The user attaches the file from OneDrive.
   - Accept: a completed share leaves the item `pending`; "Mark sent" is the only thing that changes it.
-- **S5c Fewer taps (experiment).** After a finished share, the app opens the Outlook draft by itself. The Open Outlook button stays as the fallback, because Safari may block a jump that isn't directly from a tap.
-  - Accept: a finished share opens the draft; a cancelled or unsupported share doesn't; the status stays `pending`.
+- **S5c Fewer taps (experiment, failed and removed, see L16).** After a finished share, the app opened the Outlook draft by itself. Now the user taps Open Outlook.
+  - Accept: a finished share doesn't try to open Outlook; tapping Open Outlook does.
 - **S6 Honest status.** The app never claims a receipt reached Concur, because it cannot know. The label is "Marked sent", and only the user sets it.
 - **S7 Stays private.** Receipt images leave the phone only when the user shares them. No analytics and no third-party requests.
 
@@ -39,7 +39,7 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
 - [x] T6 | S1 to S7 | Browser end-to-end test, in Chromium only | commit: 5589490
 - [ ] T7 | S1, S5 | Publish over HTTPS and prove on a real iPhone. Needs user approval and the user's phone | commit: -
 - [x] T8 | S5b, S6 | OneDrive and Outlook route, with user-confirmed "Mark sent" (TDD) | commit: 94d0995
-- [ ] T9 | S5c | Open the Outlook draft automatically after a finished share (TDD, needs iPhone proof) | commit: 63acca6 (code; iPhone proof pending)
+- [x] T9 | S5c | Try opening the Outlook draft automatically after a finished share. Failed on iPhone, so removed | commit: 63acca6, removed in the next code commit
 
 ## Log
 
@@ -58,3 +58,4 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
 - **L13 (iPhone test, reported by user):** "Outlook opens, it add the address. Phone camera open great." This proves Open Outlook and the To field, and that the camera opens. T7 stays open for: photo orientation, dragging corners by finger, opening offline, and a receipt sent through the updated app appearing readable in Available Receipts.
 - **L14 (OneDrive limits):** user can't get Microsoft Graph approved, and asked for an automatic save to OneDrive. No documented OneDrive link takes a file, so a web app can't do that. The user asked for the automatic Outlook step instead.
 - **L15 (T9 proof):** valid RED: only the new test failed. GREEN in Chromium with the share and the Outlook link simulated. Not proved: whether Safari allows the jump once the share has finished.
+- **L16 (T9 result on iPhone, reported by user):** "Outlook didn't opened automatically". The automatic step was removed, as agreed beforehand. The Open Outlook button remains, and it does work from a tap (L13).

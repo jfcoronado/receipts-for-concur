@@ -7,7 +7,7 @@ Scan receipts on an iPhone and email them to SAP Concur. It's a web app you add 
 1. Scan a receipt, or pick a photo from your library.
 2. Drag the four corners onto the receipt's edges, then save.
 3. Tap **Share** and save the JPEG to OneDrive.
-4. Outlook should open a draft by itself once the save finishes. If it doesn't, tap **Open Outlook**. Attach the file from OneDrive and send it to the Concur address. If the To field is empty, paste the address, which the app has copied.
+4. Tap **Open Outlook**, attach the file from OneDrive, and send it to the Concur address. If the To field is empty, paste the address, which the app has copied.
 5. Tap **Mark sent**.
 6. Look for the receipt under **Available Receipts** in Concur, then attach it to an expense there.
 
