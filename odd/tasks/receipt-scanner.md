@@ -59,3 +59,4 @@ Engram mirror: not created, because Engram is not installed on this machine. Thi
 - **L14 (OneDrive limits):** user can't get Microsoft Graph approved, and asked for an automatic save to OneDrive. No documented OneDrive link takes a file, so a web app can't do that. The user asked for the automatic Outlook step instead.
 - **L15 (T9 proof):** valid RED: only the new test failed. GREEN in Chromium with the share and the Outlook link simulated. Not proved: whether Safari allows the jump once the share has finished.
 - **L16 (T9 result on iPhone, reported by user):** "Outlook didn't opened automatically". The automatic step was removed, as agreed beforehand. The Open Outlook button remains, and it does work from a tap (L13).
+- **L17 (iPhone test, reported by user):** photo orientation, dragging corners by finger, and a readable receipt in Available Receipts all work. T7 stays open only for opening and scanning offline on the iPhone.
